@@ -32,6 +32,7 @@ app.include_router(history.router, prefix=settings.api_v1_prefix, tags=["history
 @app.on_event("startup")
 async def on_startup():
     connect_mongodb()
+    await auth.ensure_admin_user()
     configure_embeddings()
     connect_chroma()
     configure_llm()
