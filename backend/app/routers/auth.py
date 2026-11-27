@@ -42,8 +42,34 @@ async def ensure_admin_user():
         "created_at": datetime.now(timezone.utc),
     }
 
-    await users.insert_one(doc)
-    return UserPublic(id=str(res.inserted_id), email=doc["email"], name=doc["name"], role=role)
+    result = await users.insert_one(doc)
+    return UserPublic(
+        id=str(result.inserted_id),
+        email=doc["email"],
+        name=doc["name"],
+        role=Role.ADMIN,
+    )
+
+
+@router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
+async def register(payload: UserCreate):
+    db = get_db()
+    users = db["users"]
+
+    email = payload.email.lower()
+    if await users.find_one({"email": email}):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An account with this email already exists")
+
+    role = _resolve_role(email)
+    doc = {
+        "email": email,
+        "name": payload.name.strip(),
+        "password_hash": hash_password(payload.password),
+        "role": role.value,
+        "created_at": datetime.now(timezone.utc),
+    }
+    result = await users.insert_one(doc)
+    return UserPublic(id=str(result.inserted_id), email=email, name=doc["name"], role=role)
 
 
 @router.post("/login", response_model=TokenResponse)
