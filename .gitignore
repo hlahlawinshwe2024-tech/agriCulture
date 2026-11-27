@@ -26,3 +26,13 @@ node_modules/
 dist/
 backend/models/
 backend/models/
+
+# Local development services and downloaded runtimes
+.mongodb-data/
+.mongodb-tools/
+.node-tools/
+mongodb.log*
+
+# User-uploaded runtime data
+backend/uploaded_documents/
+backend/uploaded_imports/
